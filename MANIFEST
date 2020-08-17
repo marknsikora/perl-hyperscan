@@ -1,0 +1,10 @@
+Hyperscan.xs
+lib/Hyperscan.pm
+lib/Hyperscan/Database.pm
+lib/Hyperscan/Scratch.pm
+Makefile.PL
+MANIFEST			This list of files
+ppport.h
+t/00compile.t
+t/10simple.t
+typemap
