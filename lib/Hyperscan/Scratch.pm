@@ -1,8 +1,7 @@
 package Hyperscan::Scratch;
-require XSLoader;
+use strict;
+use warnings;
 
 use Hyperscan;
-
-XSLoader::load('Hyperscan', $Hyperscan::VERSION);
 
 1;
