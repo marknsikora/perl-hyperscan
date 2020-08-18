@@ -5,6 +5,7 @@ use Hyperscan::Scratch;
 
 my $db;
 my $scratch;
+my @matches;
 
 # Compiling a simple expression works
 lives_ok { $db = Hyperscan::Database->compile("a|b", 0, 1) };
@@ -25,7 +26,8 @@ isa_ok $db, "Hyperscan::Database";
 ok $db->size() > 0;
 lives_ok { $scratch = Hyperscan::Scratch->new($db) };
 isa_ok $scratch, "Hyperscan::Scratch";
-lives_ok { $db->scan("a line with a word in it", 0, $scratch) };
+@matches = $db->scan("a line with a word in it", 0, $scratch);
+is_deeply \@matches, [0];
 
 # Force (hopefully) deallocation
 undef $scratch;

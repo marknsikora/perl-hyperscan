@@ -11,10 +11,12 @@ typedef hs_scratch_t* Hyperscan__Scratch;
 
 static
 int
-increment_context(unsigned int id, unsigned long long from, unsigned long long to, unsigned int flags, void *context)
+push_matches_to_stack(unsigned int id, unsigned long long from, unsigned long long to, unsigned int flags, void *context)
 {
-    int *i = (int*) context;
-    (*i)++;
+    dTHXR;
+    dSP;
+    mXPUSHi(id);
+    PUTBACK;
     return 0;
 }
 
@@ -73,17 +75,16 @@ scan(Hyperscan::Database self, SV *data, unsigned int flags, Hyperscan::Scratch 
     PREINIT:
         STRLEN len;
         char *raw = NULL;
-        int count = 0;
     PPCODE:
         if (!SvOK(data) || !SvPOK(data)) {
             croak("data must be a string");
         }
         raw = SvPV(data, len);
-        if (hs_scan(self, raw, len, flags, scratch, increment_context, &count) != HS_SUCCESS) {
+        PUTBACK;
+        if (hs_scan(self, raw, len, flags, scratch, push_matches_to_stack, NULL) != HS_SUCCESS) {
             croak("scanning failed");
         }
-
-        mXPUSHi(count);
+        SPAGAIN;
 
 void
 DESTROY(Hyperscan::Database self)
