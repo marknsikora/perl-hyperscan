@@ -1,4 +1,4 @@
-package Hyperscan::Scratch;
+package Hyperscan::Stream;
 require XSLoader;
 
 use Hyperscan;
