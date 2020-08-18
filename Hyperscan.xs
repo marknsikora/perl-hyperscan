@@ -165,6 +165,17 @@ compile_lit(const char *class, SV *expression, unsigned flags, unsigned mode)
         RETVAL = db;
     OUTPUT: RETVAL
 
+Hyperscan::Stream
+open_stream(Hyperscan::Database self, unsigned int flags)
+    PREINIT:
+        hs_stream_t *stream = NULL;
+    CODE:
+        if (hs_open_stream(self, flags, &stream) != HS_SUCCESS) {
+            croak("error opening stream");
+        }
+        RETVAL = stream;
+    OUTPUT: RETVAL
+
 void
 scan(Hyperscan::Database self, SV *data, unsigned int flags, Hyperscan::Scratch scratch)
     PREINIT:
@@ -181,6 +192,17 @@ scan(Hyperscan::Database self, SV *data, unsigned int flags, Hyperscan::Scratch 
         }
         SPAGAIN;
 
+Hyperscan::Scratch
+alloc_scratch(Hyperscan::Database self)
+    PREINIT:
+        hs_scratch_t *scratch = NULL;
+    CODE:
+        if (hs_alloc_scratch(self, &scratch) != HS_SUCCESS) {
+            croak("error allocating scratch");
+        }
+        RETVAL = scratch;
+    OUTPUT: RETVAL
+
 void
 DESTROY(Hyperscan::Database self)
     CODE:
@@ -190,17 +212,6 @@ DESTROY(Hyperscan::Database self)
 
 MODULE = Hyperscan  PACKAGE = Hyperscan::Scratch
 
-Hyperscan::Scratch
-new(const char *class, Hyperscan::Database db)
-    PREINIT:
-        hs_scratch_t *scratch = NULL;
-    CODE:
-        if (hs_alloc_scratch(db, &scratch) != HS_SUCCESS) {
-            croak("error allocating scratch");
-        }
-        RETVAL = scratch;
-    OUTPUT: RETVAL
-
 void
 DESTROY(Hyperscan::Scratch self)
     CODE:
@@ -209,17 +220,6 @@ DESTROY(Hyperscan::Scratch self)
         }
 
 MODULE = Hyperscan  PACKAGE = Hyperscan::Stream
-
-Hyperscan::Stream
-new(const char *class, Hyperscan::Database db, unsigned int flags)
-    PREINIT:
-        hs_stream_t *stream = NULL;
-    CODE:
-        if (hs_open_stream(db, flags, &stream) != HS_SUCCESS) {
-            croak("error opening stream");
-        }
-        RETVAL = stream;
-    OUTPUT: RETVAL
 
 void
 close(Hyperscan::Stream self, Hyperscan::Scratch scratch)

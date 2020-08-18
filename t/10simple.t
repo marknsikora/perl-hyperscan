@@ -2,7 +2,6 @@ use Test::Most tests => 18;
 
 use Hyperscan;
 use Hyperscan::Database;
-use Hyperscan::Scratch;
 
 my $db;
 my $scratch;
@@ -25,14 +24,14 @@ ok $db->size() > 0;
 lives_ok { $db = Hyperscan::Database->compile("word", 0, Hyperscan::HS_MODE_BLOCK) };
 isa_ok $db, "Hyperscan::Database";
 ok $db->size() > 0;
-lives_ok { $scratch = Hyperscan::Scratch->new($db) };
+lives_ok { $scratch = $db->alloc_scratch(); };
 isa_ok $scratch, "Hyperscan::Scratch";
 @matches = $db->scan("a line with a word in it", 0, $scratch);
 is_deeply \@matches, [0];
 
 lives_ok { $db = Hyperscan::Database->compile_multi(["one word", "two words"], [0, 0], [0, 1], Hyperscan::HS_MODE_BLOCK) };
 isa_ok $db, "Hyperscan::Database";
-lives_ok { $scratch = Hyperscan::Scratch->new($db) };
+lives_ok { $scratch = $db->alloc_scratch() };
 isa_ok $scratch, "Hyperscan::Scratch";
 @matches = $db->scan("a line with one word and two words in it", 0, $scratch);
 is_deeply \@matches, [0, 1];
