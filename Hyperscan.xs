@@ -96,44 +96,44 @@ compile_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsigned i
             croak("ids must have same number of elements as expressions");
         }
 
-        expression_values = malloc((elements+1) * sizeof(char*));
+        Newx(expression_values, elements+1, char*);
         for (i = 0; i < elements; i++) {
             tmp = av_fetch(expr_arr, i, 0);
             if (!SvOK(*tmp) || !SvPOK(*tmp)) {
-                free(expression_values);
+                Safefree(expression_values);
                 croak("expressions must be an array of strings");
             }
             expression_values[i] = SvPV_nolen(*tmp);
         }
         expression_values[elements] = NULL;
 
-        flag_values = malloc(elements * sizeof(char*));
+        Newx(flag_values, elements, unsigned int);
         for (i = 0; i < elements; i++) {
             tmp = av_fetch(flag_arr, i, 0);
             if (!SvOK(*tmp) || !SvIOK(*tmp)) {
-                free(expression_values);
-                free(flag_values);
+                Safefree(expression_values);
+                Safefree(flag_values);
                 croak("flags must be an array of ints");
             }
             flag_values[i] = SvIV(*tmp);
         }
 
-        id_values = malloc(elements * sizeof(char*));
+        Newx(id_values, elements, unsigned int);
         for (i = 0; i < elements; i++) {
             tmp = av_fetch(id_arr, i, 0);
             if (!SvOK(*tmp) || !SvIOK(*tmp)) {
-                free(expression_values);
-                free(flag_values);
-                free(id_values);
+                Safefree(expression_values);
+                Safefree(flag_values);
+                Safefree(id_values);
                 croak("ids must be an array of ints");
             }
             id_values[i] = SvIV(*tmp);
         }
 
         err = hs_compile_multi(expression_values, flag_values, id_values, elements, mode, NULL, &db, &compile_err);
-        free(expression_values);
-        free(flag_values);
-        free(id_values);
+        Safefree(expression_values);
+        Safefree(flag_values);
+        Safefree(id_values);
 
         if (err != HS_SUCCESS) {
             msg = sv_2mortal(newSVpv(compile_err->message, 0));
