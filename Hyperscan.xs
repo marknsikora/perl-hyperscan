@@ -6,6 +6,8 @@
 
 #include "hs.h"
 
+#include "const-c.inc"
+
 typedef hs_database_t* Hyperscan__Database;
 typedef hs_scratch_t* Hyperscan__Scratch;
 typedef hs_stream_t* Hyperscan__Stream;
@@ -20,6 +22,10 @@ push_matches_to_stack(unsigned int id, unsigned long long from, unsigned long lo
     PUTBACK;
     return 0;
 }
+
+MODULE = Hyperscan  PACKAGE = Hyperscan
+
+INCLUDE: const-xs.inc
 
 MODULE = Hyperscan  PACKAGE = Hyperscan::Database
 PROTOTYPES: ENABLED

@@ -43,3 +43,5 @@ inc/
 /extlib/
 
 /Hyperscan.c
+/const-c.inc
+/const-xs.inc
