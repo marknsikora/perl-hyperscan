@@ -1,4 +1,4 @@
-use Test::Most tests => 13;
+use Test::Most tests => 18;
 
 use Hyperscan::Database;
 use Hyperscan::Scratch;
@@ -28,6 +28,13 @@ lives_ok { $scratch = Hyperscan::Scratch->new($db) };
 isa_ok $scratch, "Hyperscan::Scratch";
 @matches = $db->scan("a line with a word in it", 0, $scratch);
 is_deeply \@matches, [0];
+
+lives_ok { $db = Hyperscan::Database->compile_multi(["one word", "two words"], [0, 0], [0, 1], 1) };
+isa_ok $db, "Hyperscan::Database";
+lives_ok { $scratch = Hyperscan::Scratch->new($db) };
+isa_ok $scratch, "Hyperscan::Scratch";
+@matches = $db->scan("a line with one word and two words in it", 0, $scratch);
+is_deeply \@matches, [0, 1];
 
 # Force (hopefully) deallocation
 undef $scratch;

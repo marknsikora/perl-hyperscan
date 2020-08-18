@@ -50,6 +50,94 @@ compile(const char *class, const char *expression, unsigned int flags, unsigned 
     OUTPUT: RETVAL
 
 Hyperscan::Database
+compile_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsigned int mode)
+    PREINIT:
+        int i;
+        unsigned int elements;
+        hs_database_t *db = NULL;
+        hs_compile_error_t *compile_err = NULL;
+        SV *msg = NULL;
+        AV *expr_arr = NULL, *flag_arr = NULL, *id_arr = NULL;
+        const char **expression_values = NULL;
+        unsigned int *flag_values = NULL;
+        unsigned int *id_values;
+        SV **tmp = NULL;
+        hs_error_t error_val;
+    CODE:
+        if (!SvROK(expressions) || SvTYPE(SvRV(expressions)) != SVt_PVAV) {
+            croak("expressions must be an array ref");
+        }
+        if (!SvROK(flags) || SvTYPE(SvRV(flags)) != SVt_PVAV) {
+            croak("flags must be an array ref");
+        }
+        if (!SvROK(ids) || SvTYPE(SvRV(ids)) != SVt_PVAV) {
+            croak("ids must be an array ref");
+        }
+        expr_arr = (AV*)SvRV(expressions);
+        elements = av_top_index(expr_arr) + 1;
+        if (elements == -1) {
+            croak("expressions must not be empty");
+        }
+
+        flag_arr = (AV*)SvRV(flags);
+        if (elements != av_top_index(flag_arr) + 1) {
+            croak("flags must have same number of elements as expressions");
+        }
+
+        id_arr = (AV*)SvRV(ids);
+        if (elements != av_top_index(id_arr) + 1) {
+            croak("ids must have same number of elements as expressions");
+        }
+
+        expression_values = malloc((elements+1) * sizeof(char*));
+        for (i = 0; i < elements; i++) {
+            tmp = av_fetch(expr_arr, i, 0);
+            if (!SvOK(*tmp) || !SvPOK(*tmp)) {
+                free(expression_values);
+                croak("expressions must be an array of strings");
+            }
+            expression_values[i] = SvPV_nolen(*tmp);
+        }
+        expression_values[elements] = NULL;
+
+        flag_values = malloc(elements * sizeof(char*));
+        for (i = 0; i < elements; i++) {
+            tmp = av_fetch(flag_arr, i, 0);
+            if (!SvOK(*tmp) || !SvIOK(*tmp)) {
+                free(expression_values);
+                free(flag_values);
+                croak("flags must be an array of ints");
+            }
+            flag_values[i] = SvIV(*tmp);
+        }
+
+        id_values = malloc(elements * sizeof(char*));
+        for (i = 0; i < elements; i++) {
+            tmp = av_fetch(id_arr, i, 0);
+            if (!SvOK(*tmp) || !SvIOK(*tmp)) {
+                free(expression_values);
+                free(flag_values);
+                free(id_values);
+                croak("ids must be an array of ints");
+            }
+            id_values[i] = SvIV(*tmp);
+        }
+
+        error_val = hs_compile_multi(expression_values, flag_values, id_values, elements, mode, NULL, &db, &compile_err);
+        free(expression_values);
+        free(flag_values);
+        free(id_values);
+
+        if (error_val != HS_SUCCESS) {
+            msg = sv_2mortal(newSVpv(compile_err->message, 0));
+            hs_free_compile_error(compile_err);
+            croak_sv(msg);
+        }
+
+        RETVAL = db;
+    OUTPUT: RETVAL
+
+Hyperscan::Database
 compile_lit(const char *class, SV *expression, unsigned flags, unsigned mode)
     PREINIT:
         STRLEN len;
