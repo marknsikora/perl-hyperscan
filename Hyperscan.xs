@@ -18,8 +18,16 @@ push_matches_to_stack(unsigned int id, unsigned long long from, unsigned long lo
 {
     dTHXR;
     dSP;
-    mXPUSHi(id);
+
+    HV *match = newHV();
+    hv_stores(match, "id", newSVuv(id));
+    hv_stores(match, "from", newSVuv(from));
+    hv_stores(match, "to", newSVuv(to));
+    hv_stores(match, "flags", newSVuv(flags));
+
+    XPUSHs(sv_2mortal(newRV_noinc(match)));
     PUTBACK;
+
     return 0;
 }
 
