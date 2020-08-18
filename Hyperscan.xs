@@ -69,7 +69,7 @@ compile_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsigned i
         unsigned int *flag_values = NULL;
         unsigned int *id_values;
         SV **tmp = NULL;
-        hs_error_t error_val;
+        hs_error_t err;
     CODE:
         if (!SvROK(expressions) || SvTYPE(SvRV(expressions)) != SVt_PVAV) {
             croak("expressions must be an array ref");
@@ -130,12 +130,12 @@ compile_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsigned i
             id_values[i] = SvIV(*tmp);
         }
 
-        error_val = hs_compile_multi(expression_values, flag_values, id_values, elements, mode, NULL, &db, &compile_err);
+        err = hs_compile_multi(expression_values, flag_values, id_values, elements, mode, NULL, &db, &compile_err);
         free(expression_values);
         free(flag_values);
         free(id_values);
 
-        if (error_val != HS_SUCCESS) {
+        if (err != HS_SUCCESS) {
             msg = sv_2mortal(newSVpv(compile_err->message, 0));
             hs_free_compile_error(compile_err);
             croak_sv(msg);
@@ -181,16 +181,18 @@ scan(Hyperscan::Database self, SV *data, unsigned int flags, Hyperscan::Scratch 
     PREINIT:
         STRLEN len;
         char *raw = NULL;
+        hs_error_t err;
     PPCODE:
         if (!SvOK(data) || !SvPOK(data)) {
             croak("data must be a string");
         }
         raw = SvPV(data, len);
         PUTBACK;
-        if (hs_scan(self, raw, len, flags, scratch, push_matches_to_stack, NULL) != HS_SUCCESS) {
+        err = hs_scan(self, raw, len, flags, scratch, push_matches_to_stack, NULL);
+        SPAGAIN;
+        if (err != HS_SUCCESS) {
             croak("scanning failed");
         }
-        SPAGAIN;
 
 Hyperscan::Scratch
 alloc_scratch(Hyperscan::Database self)
@@ -223,12 +225,15 @@ MODULE = Hyperscan  PACKAGE = Hyperscan::Stream
 
 void
 close(Hyperscan::Stream self, Hyperscan::Scratch scratch)
+    PREINIT:
+        hs_error_t err;
     PPCODE:
         PUTBACK;
-        if (hs_close_stream(self, scratch, push_matches_to_stack, NULL) != HS_SUCCESS) {
+        err = hs_close_stream(self, scratch, push_matches_to_stack, NULL);
+        SPAGAIN;
+        if (err != HS_SUCCESS) {
             croak("scanning failed");
         }
-        SPAGAIN;
 
 void
 reset(Hyperscan::Stream self)
