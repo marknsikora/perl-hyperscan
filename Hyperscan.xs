@@ -9,6 +9,15 @@
 typedef hs_database_t* Hyperscan__Database;
 typedef hs_scratch_t* Hyperscan__Scratch;
 
+static
+int
+increment_context(unsigned int id, unsigned long long from, unsigned long long to, unsigned int flags, void *context)
+{
+    int *i = (int*) context;
+    (*i)++;
+    return 0;
+}
+
 MODULE = Hyperscan  PACKAGE = Hyperscan::Database
 PROTOTYPES: ENABLED
 
@@ -64,14 +73,17 @@ scan(Hyperscan::Database self, SV *data, unsigned int flags, Hyperscan::Scratch 
     PREINIT:
         STRLEN len;
         char *raw = NULL;
-    CODE:
+        int count = 0;
+    PPCODE:
         if (!SvOK(data) || !SvPOK(data)) {
             croak("data must be a string");
         }
         raw = SvPV(data, len);
-        if (hs_scan(self, raw, len, flags, scratch, NULL, NULL) != HS_SUCCESS) {
+        if (hs_scan(self, raw, len, flags, scratch, increment_context, &count) != HS_SUCCESS) {
             croak("scanning failed");
         }
+
+        mXPUSHi(count);
 
 void
 DESTROY(Hyperscan::Database self)
