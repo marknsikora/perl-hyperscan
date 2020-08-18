@@ -8,6 +8,7 @@
 
 typedef hs_database_t* Hyperscan__Database;
 typedef hs_scratch_t* Hyperscan__Scratch;
+typedef hs_stream_t* Hyperscan__Stream;
 
 static
 int
@@ -199,4 +200,40 @@ DESTROY(Hyperscan::Scratch self)
     CODE:
         if (hs_free_scratch(self) != HS_SUCCESS) {
             croak("freeing scratch failed");
+        }
+
+MODULE = Hyperscan  PACKAGE = Hyperscan::Stream
+
+Hyperscan::Stream
+new(const char *class, Hyperscan::Database db, unsigned int flags)
+    PREINIT:
+        hs_stream_t *stream = NULL;
+    CODE:
+        if (hs_open_stream(db, flags, &stream) != HS_SUCCESS) {
+            croak("error opening stream");
+        }
+        RETVAL = stream;
+    OUTPUT: RETVAL
+
+void
+close(Hyperscan::Stream self, Hyperscan::Scratch scratch)
+    PPCODE:
+        PUTBACK;
+        if (hs_close_stream(self, scratch, push_matches_to_stack, NULL) != HS_SUCCESS) {
+            croak("scanning failed");
+        }
+        SPAGAIN;
+
+void
+reset(Hyperscan::Stream self)
+    CODE:
+        if (hs_reset_stream(self, 0, NULL, NULL, NULL) != HS_SUCCESS) {
+            croak("error reseting stream");
+        }
+
+void
+DESTROY(Hyperscan::Stream self)
+    CODE:
+        if (hs_close_stream(self, NULL, NULL, NULL) != HS_SUCCESS) {
+            croak("error closing stream");
         }
