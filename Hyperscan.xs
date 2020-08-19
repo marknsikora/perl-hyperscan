@@ -31,9 +31,32 @@ push_matches_to_stack(unsigned int id, unsigned long long from, unsigned long lo
     return 0;
 }
 
+static
+void*
+newx_malloc(size_t size)
+{
+    void *ptr;
+    Newx(ptr, size, char);
+    return ptr;
+}
+
+static
+void
+my_safefree(void *ptr)
+{
+    Safefree(ptr);
+}
+
 MODULE = Hyperscan  PACKAGE = Hyperscan
 
 INCLUDE: const-xs.inc
+
+BOOT:
+    {
+        if (hs_set_allocator(newx_malloc, my_safefree) != HS_SUCCESS) {
+            croak("settings allocator failed");
+        }
+    }
 
 MODULE = Hyperscan  PACKAGE = Hyperscan::Database
 PROTOTYPES: ENABLED
