@@ -25,7 +25,7 @@ push_matches_to_stack(unsigned int id, unsigned long long from, unsigned long lo
     hv_stores(match, "to", newSVuv(to));
     hv_stores(match, "flags", newSVuv(flags));
 
-    XPUSHs(sv_2mortal(newRV_noinc(match)));
+    XPUSHs(sv_2mortal(newRV_noinc((SV*) match)));
     PUTBACK;
 
     return 0;
@@ -56,6 +56,7 @@ compile(const char *class, const char *expression, unsigned int flags, unsigned 
         hs_compile_error_t *compile_err = NULL;
         SV *msg = NULL;
     CODE:
+        PERL_UNUSED_VAR(class);
         if (hs_compile(expression, flags, mode, NULL, &db, &compile_err) != HS_SUCCESS) {
             msg = sv_2mortal(newSVpv(compile_err->message, 0));
             hs_free_compile_error(compile_err);
@@ -79,6 +80,7 @@ compile_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsigned i
         SV **tmp = NULL;
         hs_error_t err;
     CODE:
+        PERL_UNUSED_VAR(class);
         if (!SvROK(expressions) || SvTYPE(SvRV(expressions)) != SVt_PVAV) {
             croak("expressions must be an array ref");
         }
@@ -104,7 +106,7 @@ compile_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsigned i
             croak("ids must have same number of elements as expressions");
         }
 
-        Newx(expression_values, elements+1, char*);
+        Newx(expression_values, elements+1, const char*);
         for (i = 0; i < elements; i++) {
             tmp = av_fetch(expr_arr, i, 0);
             if (!SvOK(*tmp) || !SvPOK(*tmp)) {
@@ -161,6 +163,7 @@ compile_lit(const char *class, SV *expression, unsigned flags, unsigned mode)
         hs_compile_error_t *compile_err = NULL;
         SV *msg = NULL;
     CODE:
+        PERL_UNUSED_VAR(class);
         if (!SvOK(expression) || !SvPOK(expression)) {
             croak("expression must be a string");
         }
