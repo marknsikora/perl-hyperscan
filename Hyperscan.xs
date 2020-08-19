@@ -270,9 +270,21 @@ close(Hyperscan::Stream self, Hyperscan::Scratch scratch)
         }
 
 void
-reset(Hyperscan::Stream self)
+reset(Hyperscan::Stream self, Hyperscan::Scratch scratch=NULL, unsigned int flags=0)
+    PREINIT:
+        match_event_handler onEvent = NULL;
+        hs_error_t err;
     CODE:
-        if (hs_reset_stream(self, 0, NULL, NULL, NULL) != HS_SUCCESS) {
+        if (items != 1 && items != 3) {
+           croak_xs_usage(cv,  "self, [scratch, flags]");
+        }
+        if (scratch != NULL) {
+            onEvent = push_matches_to_stack;
+        }
+        PUTBACK;
+        err = hs_reset_stream(self, flags, scratch, onEvent, NULL);
+        SPAGAIN;
+        if (err != HS_SUCCESS) {
             croak("error reseting stream");
         }
 
