@@ -45,3 +45,12 @@ inc/
 /Hyperscan.c
 /const-c.inc
 /const-xs.inc
+
+# Perl::Tidy
+*.bak
+*.tdy
+
+# Devel::Cover
+*.gcda
+*.gcno
+*.gcov
