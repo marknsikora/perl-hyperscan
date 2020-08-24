@@ -7,6 +7,17 @@ use ExtUtils::PkgConfig;
 WriteMakefile(
     NAME            => 'Hyperscan',
     VERSION_FROM    => 'lib/Hyperscan.pm',
+    CONFIGURE_REQUIRES  => {
+        'ExtUtils::MakeMaker' => 0,
+        'ExtUtils::Constant'  => 0,
+        'ExtUtils::PkgConfig' => 0,
+    },
+    PREREQ_PM => {
+        'Carp' => 0,
+    },
+    TEST_REQUIRES => {
+        'Test::Most' => 0,
+    },
     INC             => '-I.',
     CCFLAGS         => "$pkg_info{cflags} -Wall",
     LIBS            => $pkg_info{libs},
