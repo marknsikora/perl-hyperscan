@@ -1,4 +1,4 @@
-use Test::Most tests => 18;
+use Test::Most tests => 20;
 
 use Hyperscan;
 use Hyperscan::Database;
@@ -13,6 +13,8 @@ lives_ok {
 };
 isa_ok $db, "Hyperscan::Database";
 ok $db->size() > 0;
+my $info = $db->info();
+ok length $info > 0;
 
 # Compiling an unsupported expression (backref) dies
 dies_ok {
@@ -35,6 +37,7 @@ isa_ok $db, "Hyperscan::Database";
 ok $db->size() > 0;
 lives_ok { $scratch = $db->alloc_scratch(); };
 isa_ok $scratch, "Hyperscan::Scratch";
+ok $scratch->size() > 0;
 @matches = $db->scan( "a line with a word in it", 0, $scratch );
 is_deeply \@matches, [ { id => 0, from => 14, to => 18, flags => 0 } ];
 

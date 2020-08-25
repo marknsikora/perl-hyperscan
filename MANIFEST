@@ -12,4 +12,5 @@ t/00compile.t
 t/10simple.t
 t/20matcher.t
 t/30serialize.t
+t/40error.t
 typemap
