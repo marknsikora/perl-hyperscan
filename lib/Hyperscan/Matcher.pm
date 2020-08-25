@@ -34,18 +34,14 @@ sub _initialize {
 
     my $mode = defined $args{mode} ? $args{mode} : "block";
 
-    if ( $mode eq "block" ) {
-        $mode = Hyperscan::HS_MODE_BLOCK;
-    }
-    elsif ( $mode eq "stream" ) {
-        $mode = Hyperscan::HS_MODE_STREAM;
-    }
-    elsif ( $mode eq "vectored" ) {
-        $mode = Hyperscan::HS_MODE_VECTORED;
-    }
-    else {
-        croak "unknown mode $mode";
-    }
+    $self->{mode} = $mode;
+
+    $mode =
+        $mode eq "block" ? Hyperscan::HS_MODE_BLOCK
+      : $mode eq "stream"
+      ? Hyperscan::HS_MODE_STREAM | Hyperscan::HS_MODE_SOM_HORIZON_LARGE
+      : $mode eq "vectored" ? Hyperscan::HS_MODE_VECTORED
+      :                       croak "unknown mode $mode";
 
     my @expressions;
     my @flags;
@@ -138,11 +134,9 @@ sub _initialize {
 
     $self->{scratch} = $self->{db}->alloc_scratch();
 
-    if ( $mode == Hyperscan::HS_MODE_STREAM ) {
+    if ( $self->{mode} eq "stream" ) {
         $self->{stream} = $self->{db}->open_stream();
     }
-
-    $self->{mode} = $mode;
 
     return;
 }
@@ -153,15 +147,15 @@ sub scan {
     my $data = shift;
 
     my $flags = shift;
-    $flags = Hyperscan::HS_MODE_SOM_HORIZON_SMALL if not defined $flags;
+    $flags = defined $flags ? $flags : 0;
 
-    if ( $self->{mode} == Hyperscan::HS_MODE_BLOCK ) {
+    if ( $self->{mode} eq "block" ) {
         return $self->{db}->scan( $data, $flags, $self->{scratch} );
     }
-    elsif ( $self->{mode} == Hyperscan::HS_MODE_STREAM ) {
+    elsif ( $self->{mode} eq "stream" ) {
         return $self->{stream}->scan( $data, $flags, $self->{scratch} );
     }
-    elsif ( $self->{mode} == Hyperscan::HS_MODE_VECTORED ) {
+    elsif ( $self->{mode} eq "vectored" ) {
         return $self->{db}->scan_vector( $data, $flags, $self->{scratch} );
     }
     else {
