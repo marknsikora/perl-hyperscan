@@ -219,7 +219,7 @@ compile_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsigned i
         }
         expr_arr = (AV*)SvRV(expressions);
         elements = av_top_index(expr_arr) + 1;
-        if (elements == -1) {
+        if (elements == 0) {
             croak("expressions must not be empty");
         }
 
@@ -317,7 +317,7 @@ compile_ext_multi(const char *class, SV *expressions, SV *flags, SV *ids, SV *ex
 
         expr_arr = (AV*)SvRV(expressions);
         elements = av_top_index(expr_arr) + 1;
-        if (elements == -1) {
+        if (elements == 0) {
             croak("expressions must not be empty");
         }
 
@@ -523,7 +523,7 @@ compile_lit_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsign
 
         expr_arr = (AV*)SvRV(expressions);
         elements = av_top_index(expr_arr) + 1;
-        if (elements == -1) {
+        if (elements == 0) {
             croak("expressions must not be empty");
         }
 
@@ -637,7 +637,7 @@ scan_vector(Hyperscan::Database self, SV *data, unsigned int flags, Hyperscan::S
 
         data_arr = (AV*)SvRV(data);
         count = av_top_index(data_arr) + 1;
-        if (count == -1) {
+        if (count == 0) {
             croak("data must not be empty");
         }
 
