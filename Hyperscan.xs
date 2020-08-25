@@ -745,22 +745,6 @@ scan(Hyperscan::Stream self, SV *data, unsigned int flags, Hyperscan::Scratch sc
         }
 
 void
-close(Hyperscan::Stream self, Hyperscan::Scratch scratch=NULL)
-    PREINIT:
-        match_event_handler onEvent = NULL;
-        hs_error_t err;
-    PPCODE:
-        if (scratch != NULL) {
-            onEvent = push_matches_to_stack;
-        }
-        PUTBACK;
-        err = hs_close_stream(self, scratch, onEvent, NULL);
-        SPAGAIN;
-        if (err != HS_SUCCESS) {
-            croak("scanning failed (%s)", hs_error_to_string(err));
-        }
-
-void
 reset(Hyperscan::Stream self, Hyperscan::Scratch scratch=NULL, unsigned int flags=0)
     PREINIT:
         match_event_handler onEvent = NULL;
