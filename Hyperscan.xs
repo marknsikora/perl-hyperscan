@@ -745,11 +745,11 @@ scan(Hyperscan::Stream self, SV *data, unsigned int flags, Hyperscan::Scratch sc
         }
 
 void
-reset(Hyperscan::Stream self, Hyperscan::Scratch scratch=NULL, unsigned int flags=0)
+reset(Hyperscan::Stream self, unsigned int flags=0, Hyperscan::Scratch scratch=NULL)
     PREINIT:
         match_event_handler onEvent = NULL;
         hs_error_t err;
-    CODE:
+    PPCODE:
         if (items != 1 && items != 3) {
            croak_xs_usage(cv,  "self, [scratch, flags]");
         }
