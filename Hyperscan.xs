@@ -3,7 +3,6 @@
 #include "perl.h"
 #include "XSUB.h"
 
-#define NEED_croak_xs_usage
 #include "ppport.h"
 
 #include "hs.h"
@@ -16,21 +15,40 @@ typedef hs_stream_t* Hyperscan__Stream;
 
 static
 int
-push_matches_to_stack(unsigned int id, unsigned long long from, unsigned long long to, unsigned int flags, void *context)
+context_callback(unsigned int id, unsigned long long from, unsigned long long to, unsigned int flags, void *context)
 {
-    PERL_UNUSED_VAR(context);
-
     dTHXR;
     dSP;
 
-    HV *match = newHV();
-    hv_stores(match, "id", newSVuv(id));
-    hv_stores(match, "from", newSVuv(from));
-    hv_stores(match, "to", newSVuv(to));
-    hv_stores(match, "flags", newSVuv(flags));
+    int count;
+    bool rval;
 
-    XPUSHs(sv_2mortal(newRV_noinc((SV*) match)));
-    PUTBACK;
+    SV *callback = (SV*)context;
+
+    if (callback != NULL) {
+        ENTER;
+        SAVETMPS;
+
+        PUSHMARK(SP);
+        EXTEND(SP, 4);
+        mPUSHu(id);
+        mPUSHu(from);
+        mPUSHu(to);
+        mPUSHu(flags);
+        PUTBACK;
+
+        count = call_sv(callback, G_SCALAR);
+
+        SPAGAIN;
+
+        rval = SvTRUEx(POPs);
+
+        PUTBACK;
+        FREETMPS;
+        LEAVE;
+
+        return rval;
+    }
 
     return 0;
 }
@@ -602,25 +620,25 @@ open_stream(Hyperscan::Database self, unsigned int flags=0)
     OUTPUT: RETVAL
 
 void
-scan(Hyperscan::Database self, SV *data, unsigned int flags, Hyperscan::Scratch scratch)
+scan(Hyperscan::Database self, SV *data, unsigned int flags=0, Hyperscan::Scratch scratch=NULL, SV *onEvent=NULL)
     PREINIT:
         STRLEN len;
         char *raw = NULL;
         hs_error_t err;
-    PPCODE:
+    CODE:
         if (!SvOK(data) || !SvPOK(data)) {
             croak("data must be a string");
         }
         raw = SvPV(data, len);
         PUTBACK;
-        err = hs_scan(self, raw, len, flags, scratch, push_matches_to_stack, NULL);
+        err = hs_scan(self, raw, len, flags, scratch, context_callback, onEvent);
         SPAGAIN;
         if (err != HS_SUCCESS) {
             croak("scanning failed");
         }
 
 void
-scan_vector(Hyperscan::Database self, SV *data, unsigned int flags, Hyperscan::Scratch scratch)
+scan_vector(Hyperscan::Database self, SV *data, unsigned int flags=0, Hyperscan::Scratch scratch=NULL, SV *onEvent=NULL)
     PREINIT:
         int i;
         AV *data_arr = NULL;
@@ -630,7 +648,7 @@ scan_vector(Hyperscan::Database self, SV *data, unsigned int flags, Hyperscan::S
         SV **tmp = NULL;
         STRLEN len;
         hs_error_t err;
-    PPCODE:
+    CODE:
         if (!SvROK(data) || SvTYPE(SvRV(data)) != SVt_PVAV) {
             croak("data must be an array ref");
         }
@@ -656,7 +674,7 @@ scan_vector(Hyperscan::Database self, SV *data, unsigned int flags, Hyperscan::S
         }
 
         PUTBACK;
-        err = hs_scan_vector(self, data_values, len_values, count, flags, scratch, push_matches_to_stack, NULL);
+        err = hs_scan_vector(self, data_values, len_values, count, flags, scratch, context_callback, onEvent);
         SPAGAIN;
 
         Safefree(data_values);
@@ -727,37 +745,30 @@ DESTROY(Hyperscan::Scratch self)
 MODULE = Hyperscan  PACKAGE = Hyperscan::Stream
 
 void
-scan(Hyperscan::Stream self, SV *data, unsigned int flags, Hyperscan::Scratch scratch)
+scan(Hyperscan::Stream self, SV *data, unsigned int flags=0, Hyperscan::Scratch scratch=NULL, SV *onEvent=NULL)
     PREINIT:
         STRLEN len;
         char *raw = NULL;
         hs_error_t err;
-    PPCODE:
+    CODE:
         if (!SvOK(data) || !SvPOK(data)) {
             croak("data must be a string");
         }
         raw = SvPV(data, len);
         PUTBACK;
-        err = hs_scan_stream(self, raw, len, flags, scratch, push_matches_to_stack, NULL);
+        err = hs_scan_stream(self, raw, len, flags, scratch, context_callback, onEvent);
         SPAGAIN;
         if (err != HS_SUCCESS) {
             croak("scanning failed (%s)", hs_error_to_string(err));
         }
 
 void
-reset(Hyperscan::Stream self, unsigned int flags=0, Hyperscan::Scratch scratch=NULL)
+reset(Hyperscan::Stream self, unsigned int flags=0, Hyperscan::Scratch scratch=NULL, SV *onEvent=NULL)
     PREINIT:
-        match_event_handler onEvent = NULL;
         hs_error_t err;
-    PPCODE:
-        if (items != 1 && items != 3) {
-           croak_xs_usage(cv,  "self, [scratch, flags]");
-        }
-        if (scratch != NULL) {
-            onEvent = push_matches_to_stack;
-        }
+    CODE:
         PUTBACK;
-        err = hs_reset_stream(self, flags, scratch, onEvent, NULL);
+        err = hs_reset_stream(self, flags, scratch, context_callback, onEvent);
         SPAGAIN;
         if (err != HS_SUCCESS) {
             croak("error reseting stream (%s)", hs_error_to_string(err));

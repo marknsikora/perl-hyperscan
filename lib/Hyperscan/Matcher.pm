@@ -169,18 +169,27 @@ sub scan {
     my $flags = shift;
     $flags = defined $flags ? $flags : 0;
 
+    my @matches;
+    my $callback = sub {
+        my ( $id, $from, $to, $flags ) = @_;
+        push @matches, { id => $id, from => $from, to => $to, flags => $flags };
+        return 0;
+    };
+
     if ( $self->{mode} eq "block" ) {
-        return $self->{db}->scan( $data, $flags, $self->{scratch} );
+        $self->{db}->scan( $data, $flags, $self->{scratch}, $callback );
     }
     elsif ( $self->{mode} eq "stream" ) {
-        return $self->{stream}->scan( $data, $flags, $self->{scratch} );
+        $self->{stream}->scan( $data, $flags, $self->{scratch}, $callback );
     }
     elsif ( $self->{mode} eq "vectored" ) {
-        return $self->{db}->scan_vector( $data, $flags, $self->{scratch} );
+        $self->{db}->scan_vector( $data, $flags, $self->{scratch}, $callback );
     }
     else {
         croak "unknown mode $self->{mode}";
     }
+
+    return @matches;
 }
 
 sub reset {
@@ -191,7 +200,16 @@ sub reset {
 
     $flags = 0 if not defined $flags;
 
-    return $self->{stream}->reset( $flags, $self->{scratch} );
+    my @matches;
+    my $callback = sub {
+        my ( $id, $from, $to, $flags ) = @_;
+        push @matches, { id => $id, from => $from, to => $to, flags => $flags };
+        return 0;
+    };
+
+    $self->{stream}->reset( $flags, $self->{scratch}, $callback );
+
+    return @matches;
 }
 
 1;

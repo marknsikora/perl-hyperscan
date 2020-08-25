@@ -7,6 +7,12 @@ my $db;
 my $scratch;
 my @matches;
 
+my $callback = sub {
+    my ( $id, $from, $to, $flags ) = @_;
+    push @matches, { id => $id, from => $from, to => $to, flags => $flags };
+    return 0;
+};
+
 # Compiling a simple expression works
 lives_ok {
     $db = Hyperscan::Database->compile( "a|b", 0, Hyperscan::HS_MODE_BLOCK )
@@ -38,7 +44,8 @@ ok $db->size() > 0;
 lives_ok { $scratch = $db->alloc_scratch(); };
 isa_ok $scratch, "Hyperscan::Scratch";
 ok $scratch->size() > 0;
-@matches = $db->scan( "a line with a word in it", 0, $scratch );
+@matches = ();
+$db->scan( "a line with a word in it", 0, $scratch, $callback );
 is_deeply \@matches, [ { id => 0, from => 14, to => 18, flags => 0 } ];
 
 # Make a multi match database
@@ -53,7 +60,8 @@ lives_ok {
 isa_ok $db, "Hyperscan::Database";
 lives_ok { $scratch = $db->alloc_scratch() };
 isa_ok $scratch, "Hyperscan::Scratch";
-@matches = $db->scan( "a line with one word and two words in it", 0, $scratch );
+@matches = ();
+$db->scan( "a line with one word and two words in it", 0, $scratch, $callback );
 is_deeply \@matches,
   [
     { id => 0, from => 12, to => 20, flags => 0 },
