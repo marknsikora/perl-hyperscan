@@ -183,4 +183,15 @@ sub scan {
     }
 }
 
+sub reset {
+    my ( $self, $flags ) = @_;
+
+    croak "reset only supported in stream mode"
+      if $self->{mode} ne "stream";
+
+    $flags = 0 if not defined $flags;
+
+    return $self->{stream}->reset( $flags, $self->{scratch} );
+}
+
 1;
