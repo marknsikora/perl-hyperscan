@@ -71,14 +71,15 @@ sub _initialize {
             my $pat = shift @{$spec};
 
             my $flag = $default_flags;
-            if ( ref $spec eq "REGEXP" || ref $spec eq "Regexp" ) {
+            if ( ref $pat eq "REGEXP" || ref $pat eq "Regexp" ) {
                 my $mod;
                 ( $pat, $mod ) = regexp_pattern($pat);
 
                 $flag |= re_flags_to_hs_flags($mod);
             }
             else {
-                $flag = shift @{$spec};
+                my $tmp = shift @{$spec};
+                $flag |= $tmp if defined $tmp;
             }
 
             push @expressions, $pat;
