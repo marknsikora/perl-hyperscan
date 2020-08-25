@@ -91,6 +91,25 @@ sub _initialize {
             push @ext, ( shift @{$spec} );
         }
         elsif ( ref $spec eq "HASH" ) {
+            my $pat = $spec->{expr};
+
+            my $flag = $default_flags;
+            if ( ref $pat eq "REGEXP" || ref $pat eq "Regexp" ) {
+                my $mod;
+                ( $pat, $mod ) = regexp_pattern($pat);
+
+                $flag |= re_flags_to_hs_flags($mod);
+            }
+            else {
+                $flag |= $spec->{flag} if defined $spec->{flag};
+            }
+
+            push @expressions, $pat;
+            push @flags,       $flag;
+
+            push @ids, defined $spec->{id} ? $spec->{id} : $id;
+
+            push @ext, $spec->{ext};
         }
         else {
             carp "unknown ref type ", ref $spec, $spec;
