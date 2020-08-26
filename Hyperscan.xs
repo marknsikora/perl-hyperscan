@@ -3,6 +3,10 @@
 #include "perl.h"
 #include "XSUB.h"
 
+#define NEED_mess
+#define NEED_mess_nocontext
+#define NEED_mess_sv
+#define NEED_vmess
 #include "ppport.h"
 
 #include "hs.h"
@@ -203,7 +207,7 @@ compile(const char *class, const char *expression, unsigned int flags, unsigned 
         PERL_UNUSED_VAR(class);
         RETVAL = NULL;
         if (hs_compile(expression, flags, mode, NULL, &RETVAL, &compile_err) != HS_SUCCESS) {
-            msg = newSVpv(compile_err->message, 0);
+            msg = mess("%s", compile_err->message);
             hs_free_compile_error(compile_err);
             croak_sv(msg);
         }
@@ -291,7 +295,7 @@ compile_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsigned i
         Safefree(id_values);
 
         if (err != HS_SUCCESS) {
-            msg = newSVpv(compile_err->message, 0);
+            msg = mess("%s", compile_err->message);
             hs_free_compile_error(compile_err);
             croak_sv(msg);
         }
@@ -417,7 +421,7 @@ compile_ext_multi(const char *class, SV *expressions, SV *flags, SV *ids, SV *ex
             while ((v = hv_iternextsv(h, &k, &klen)) != NULL) {
                 if (memEQs(k, klen, "min_offset")) {
                     if (!SvOK(v) || !SvIOK(v)) {
-                        msg = newSVpvs("ext hash key min_offset must be an int");
+                        msg = mess("ext hash key min_offset must be an int");
                     } else {
                         ext_val->flags |= HS_EXT_FLAG_MIN_OFFSET;
                         ext_val->min_offset = SvUV(v);
@@ -425,7 +429,7 @@ compile_ext_multi(const char *class, SV *expressions, SV *flags, SV *ids, SV *ex
                     }
                 } else if (memEQs(k, klen, "max_offset")) {
                     if (!SvOK(v) || !SvIOK(v)) {
-                        msg = newSVpvs("ext hash key max_offset must be an int");
+                        msg = mess("ext hash key max_offset must be an int");
                     } else {
                         ext_val->flags |= HS_EXT_FLAG_MAX_OFFSET;
                         ext_val->max_offset = SvUV(v);
@@ -433,7 +437,7 @@ compile_ext_multi(const char *class, SV *expressions, SV *flags, SV *ids, SV *ex
                     }
                 } else if (memEQs(k, klen, "min_length")) {
                     if (!SvOK(v) || !SvIOK(v)) {
-                        msg = newSVpvs("ext hash key min_length must be an int");
+                        msg = mess("ext hash key min_length must be an int");
                     } else {
                         ext_val->flags |= HS_EXT_FLAG_MIN_LENGTH;
                         ext_val->min_length = SvUV(v);
@@ -441,7 +445,7 @@ compile_ext_multi(const char *class, SV *expressions, SV *flags, SV *ids, SV *ex
                     }
                 } else if (memEQs(k, klen, "edit_distance")) {
                     if (!SvOK(v) || !SvIOK(v)) {
-                        msg = newSVpvs("ext hash key edit_distance must be an int");
+                        msg = mess("ext hash key edit_distance must be an int");
                     } else {
                         ext_val->flags |= HS_EXT_FLAG_EDIT_DISTANCE;
                         ext_val->edit_distance = SvUV(v);
@@ -449,14 +453,14 @@ compile_ext_multi(const char *class, SV *expressions, SV *flags, SV *ids, SV *ex
                     }
                 } else if (memEQs(k, klen, "hamming_distance")) {
                     if (!SvOK(v) || !SvIOK(v)) {
-                        msg = newSVpvs("ext hash key hamming_distance must be an int");
+                        msg = mess("ext hash key hamming_distance must be an int");
                     } else {
                         ext_val->flags |= HS_EXT_FLAG_HAMMING_DISTANCE;
                         ext_val->hamming_distance = SvUV(v);
                         continue;
                     }
                 } else {
-                    msg = newSVpvf("unsupported key %s in ext hash", k);
+                    msg = mess("unsupported key %s in ext hash", k);
                 }
 
                 Safefree(expression_values);
@@ -483,7 +487,7 @@ compile_ext_multi(const char *class, SV *expressions, SV *flags, SV *ids, SV *ex
         Safefree(ext_values);
 
         if (err != HS_SUCCESS) {
-            msg = newSVpv(compile_err->message, 0);
+            msg = mess("%s", compile_err->message);
             hs_free_compile_error(compile_err);
             croak_sv(msg);
         }
@@ -504,7 +508,7 @@ compile_lit(const char *class, SV *expression, unsigned flags, unsigned mode)
         }
         raw = SvPV(expression, len);
         if (hs_compile_lit(raw, flags, len, mode, NULL, &RETVAL, &compile_err) != HS_SUCCESS) {
-            msg = newSVpv(compile_err->message, 0);
+            msg = mess("%s", compile_err->message);
             hs_free_compile_error(compile_err);
             croak_sv(msg);
         }
@@ -601,7 +605,7 @@ compile_lit_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsign
         Safefree(id_values);
 
         if (err != HS_SUCCESS) {
-            msg = newSVpv(compile_err->message, 0);
+            msg = mess("%s", compile_err->message);
             hs_free_compile_error(compile_err);
             croak_sv(msg);
         }
