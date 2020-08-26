@@ -26,6 +26,9 @@ sub re_flags_to_hs_flags {
         elsif ( $char eq "m" ) {
             $i |= Hyperscan::HS_FLAG_MULTILINE;
         }
+        elsif ( $char eq "u" ) {
+            $i |= Hyperscan::HS_FLAG_UTF8 | Hyperscan::HS_FLAG_UCP;
+        }
         else {
             carp "unsupported flag $char on regex";
         }
