@@ -203,11 +203,13 @@ compile(const char *class, const char *expression, unsigned int flags, unsigned 
     PREINIT:
         hs_compile_error_t *compile_err = NULL;
         SV *msg = NULL;
+        hs_error_t err;
     CODE:
         PERL_UNUSED_VAR(class);
         RETVAL = NULL;
-        if (hs_compile(expression, flags, mode, NULL, &RETVAL, &compile_err) != HS_SUCCESS) {
-            msg = mess("%s", compile_err->message);
+        err = hs_compile(expression, flags, mode, NULL, &RETVAL, &compile_err);
+        if (err != HS_SUCCESS) {
+            msg = mess("%s (%s)", compile_err->message, hs_error_to_string(err));
             hs_free_compile_error(compile_err);
             croak_sv(msg);
         }
@@ -295,7 +297,7 @@ compile_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsigned i
         Safefree(id_values);
 
         if (err != HS_SUCCESS) {
-            msg = mess("%s", compile_err->message);
+            msg = mess("%s (%s)", compile_err->message, hs_error_to_string(err));
             hs_free_compile_error(compile_err);
             croak_sv(msg);
         }
@@ -487,7 +489,7 @@ compile_ext_multi(const char *class, SV *expressions, SV *flags, SV *ids, SV *ex
         Safefree(ext_values);
 
         if (err != HS_SUCCESS) {
-            msg = mess("%s", compile_err->message);
+            msg = mess("%s (%s)", compile_err->message, hs_error_to_string(err));
             hs_free_compile_error(compile_err);
             croak_sv(msg);
         }
@@ -500,6 +502,7 @@ compile_lit(const char *class, SV *expression, unsigned flags, unsigned mode)
         char *raw = NULL;
         hs_compile_error_t *compile_err = NULL;
         SV *msg = NULL;
+        hs_error_t err;
     CODE:
         PERL_UNUSED_VAR(class);
         RETVAL = NULL;
@@ -507,8 +510,9 @@ compile_lit(const char *class, SV *expression, unsigned flags, unsigned mode)
             croak("expression must be a string");
         }
         raw = SvPV(expression, len);
-        if (hs_compile_lit(raw, flags, len, mode, NULL, &RETVAL, &compile_err) != HS_SUCCESS) {
-            msg = mess("%s", compile_err->message);
+        err = hs_compile_lit(raw, flags, len, mode, NULL, &RETVAL, &compile_err);
+        if (err != HS_SUCCESS) {
+            msg = mess("%s (%s)", compile_err->message, hs_error_to_string(err));
             hs_free_compile_error(compile_err);
             croak_sv(msg);
         }
@@ -605,7 +609,7 @@ compile_lit_multi(const char *class, SV *expressions, SV *flags, SV *ids, unsign
         Safefree(id_values);
 
         if (err != HS_SUCCESS) {
-            msg = mess("%s", compile_err->message);
+            msg = mess("%s (%s)", compile_err->message, hs_error_to_string(err));
             hs_free_compile_error(compile_err);
             croak_sv(msg);
         }
@@ -638,7 +642,7 @@ scan(Hyperscan::Database self, SV *data, unsigned int flags=0, Hyperscan::Scratc
         err = hs_scan(self, raw, len, flags, scratch, context_callback, onEvent);
         SPAGAIN;
         if (err != HS_SUCCESS) {
-            croak("scanning failed");
+            croak("scanning failed (%s)", hs_error_to_string(err));
         }
 
 void
@@ -685,7 +689,7 @@ scan_vector(Hyperscan::Database self, SV *data, unsigned int flags=0, Hyperscan:
         Safefree(len_values);
 
         if (err != HS_SUCCESS) {
-            croak("scanning failed");
+            croak("scanning failed (%s)", hs_error_to_string(err));
         }
 
 Hyperscan::Scratch
