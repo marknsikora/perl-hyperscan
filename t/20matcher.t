@@ -1,4 +1,4 @@
-use Test::Most tests => 12;
+use Test::Most tests => 14;
 
 use Hyperscan::Matcher;
 
@@ -52,3 +52,9 @@ is_deeply \@matches, [];
 is_deeply \@matches, [ { id => 0, from => 0, to => 4, flags => 0 }, ];
 @matches = $matcher->reset();
 is_deeply \@matches, [ { id => 1, from => 3, to => 4, flags => 0 } ];
+
+# Limit matches
+$matcher = Hyperscan::Matcher->new( [qr/word/] );
+isa_ok $matcher, "Hyperscan::Matcher";
+@matches = $matcher->scan("word and a word", max_matches => 1);
+is_deeply \@matches, [ { id => 0, from => 0, to => 4, flags => 0 }, ];

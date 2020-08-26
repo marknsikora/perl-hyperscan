@@ -627,7 +627,7 @@ open_stream(Hyperscan::Database self, unsigned int flags=0)
         }
     OUTPUT: RETVAL
 
-void
+int
 scan(Hyperscan::Database self, SV *data, unsigned int flags=0, Hyperscan::Scratch scratch=NULL, SV *onEvent=NULL)
     PREINIT:
         STRLEN len;
@@ -641,11 +641,16 @@ scan(Hyperscan::Database self, SV *data, unsigned int flags=0, Hyperscan::Scratc
         PUTBACK;
         err = hs_scan(self, raw, len, flags, scratch, context_callback, onEvent);
         SPAGAIN;
-        if (err != HS_SUCCESS) {
+        if (err == HS_SUCCESS) {
+            RETVAL = 0;
+        } else if (err == HS_SCAN_TERMINATED) {
+            RETVAL = 1;
+        } else {
             croak("scanning failed (%s)", hs_error_to_string(err));
         }
+    OUTPUT: RETVAL
 
-void
+int
 scan_vector(Hyperscan::Database self, SV *data, unsigned int flags=0, Hyperscan::Scratch scratch=NULL, SV *onEvent=NULL)
     PREINIT:
         int i;
@@ -688,9 +693,14 @@ scan_vector(Hyperscan::Database self, SV *data, unsigned int flags=0, Hyperscan:
         Safefree(data_values);
         Safefree(len_values);
 
-        if (err != HS_SUCCESS) {
+        if (err == HS_SUCCESS) {
+            RETVAL = 0;
+        } else if (err == HS_SCAN_TERMINATED) {
+            RETVAL = 1;
+        } else {
             croak("scanning failed (%s)", hs_error_to_string(err));
         }
+    OUTPUT: RETVAL
 
 Hyperscan::Scratch
 alloc_scratch(Hyperscan::Database self)
@@ -752,7 +762,7 @@ DESTROY(Hyperscan::Scratch self)
 
 MODULE = Hyperscan  PACKAGE = Hyperscan::Stream
 
-void
+int
 scan(Hyperscan::Stream self, SV *data, unsigned int flags=0, Hyperscan::Scratch scratch=NULL, SV *onEvent=NULL)
     PREINIT:
         STRLEN len;
@@ -766,9 +776,14 @@ scan(Hyperscan::Stream self, SV *data, unsigned int flags=0, Hyperscan::Scratch 
         PUTBACK;
         err = hs_scan_stream(self, raw, len, flags, scratch, context_callback, onEvent);
         SPAGAIN;
-        if (err != HS_SUCCESS) {
+        if (err == HS_SUCCESS) {
+            RETVAL = 0;
+        } else if (err == HS_SCAN_TERMINATED) {
+            RETVAL = 1;
+        } else {
             croak("scanning failed (%s)", hs_error_to_string(err));
         }
+    OUTPUT: RETVAL
 
 void
 reset(Hyperscan::Stream self, unsigned int flags=0, Hyperscan::Scratch scratch=NULL, SV *onEvent=NULL)

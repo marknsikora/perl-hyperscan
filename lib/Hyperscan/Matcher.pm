@@ -166,13 +166,19 @@ sub scan {
 
     my $data = shift;
 
-    my $flags = shift;
-    $flags = defined $flags ? $flags : 0;
+    my %args  = @_;
 
+    my $flags = defined $args{flags} ? $args{flags} : 0;
+
+    my $max_matches = $args{max_matches};
+
+    my $count = 0;
     my @matches;
     my $callback = sub {
         my ( $id, $from, $to, $flags ) = @_;
         push @matches, { id => $id, from => $from, to => $to, flags => $flags };
+        $count++;
+        return $count >= $max_matches if defined $max_matches;
         return 0;
     };
 
