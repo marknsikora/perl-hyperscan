@@ -1,4 +1,5 @@
 package Hyperscan::Database;
+
 use strict;
 use warnings;
 

@@ -1,4 +1,5 @@
 package Hyperscan::Matcher;
+
 use strict;
 use warnings;
 

@@ -1,4 +1,5 @@
 package Hyperscan::Scratch;
+
 use strict;
 use warnings;
 

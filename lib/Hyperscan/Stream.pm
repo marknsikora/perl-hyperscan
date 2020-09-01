@@ -1,4 +1,5 @@
 package Hyperscan::Stream;
+
 use strict;
 use warnings;
 
