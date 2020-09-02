@@ -1,5 +1,7 @@
 package Hyperscan::Util;
 
+# ABSTRACT: utility functions for other Hyperscan modules
+
 use strict;
 use warnings;
 
@@ -38,3 +40,12 @@ sub re_flags_to_hs_flags {
 }
 
 1;
+
+__END__
+
+=head2 FUNCTIONS
+
+=head3 re_flags_to_hs_flags( $flags )
+
+Takes the C<$flags> string and converts it to a int that represents the same
+hyperscan flags.

@@ -1,5 +1,7 @@
 package Hyperscan::Matcher;
 
+# ABSTRACT: high level matcher class
+
 use strict;
 use warnings;
 
@@ -167,7 +169,7 @@ sub scan {
 
     my $data = shift;
 
-    my %args  = @_;
+    my %args = @_;
 
     my $flags = defined $args{flags} ? $args{flags} : 0;
 
@@ -220,3 +222,102 @@ sub reset {
 }
 
 1;
+
+__END__
+
+=head2 CONSTRUCTORS
+
+=head3 new( \@specs, %args )
+
+Construct a new matcher object using the C<@specs> provided.
+
+Accepts the following named arguments:
+
+=over
+
+=item default_flags
+
+Flags that will be applied to all patterns, default: C<HS_FLAG_SOM_LEFTMOST>.
+
+=item literal
+
+Whether the specs provided should be compiled literally.
+
+=item mode
+
+The underlying hyperscan mode to use, default: C<"block">.
+
+=back
+
+=head4 Specs
+
+A spec can take a few forms
+
+=over
+
+=item String
+
+The string is used as the pattern, the flags are the default flags and the id
+is the index in the list.
+
+=item Regex
+
+A perl Regex object is broken down into it's pattern and flags. The flags are
+combined with the default flags and the id is the index in the list.
+
+=item Array
+
+The first item is shifted and uses the String or Regex behaviour above. If the
+item is a string an additional item is shifted to be used as the flags. The
+next elements in the array are taken to be the id and the ext hash.
+
+=item Hash
+
+A hash with the following keys
+
+=over
+
+=item expr
+
+A String or Regex.
+
+=item flag
+
+Flags, ignored if a Regex is uses as the expr.
+
+=item id
+
+Explicit match ID.
+
+=item ext
+
+An ext hash.
+
+=back
+
+=back
+
+=head2 METHODS
+
+=head3 scan( $data, %args )
+
+Scan the data for matches and return any results.
+
+Accepts the following named arguments:
+
+=over
+
+=item flags
+
+Flags to pass down into hyperscan.
+
+=item max_matches
+
+Limit the number of matches found while scanning.
+
+=back
+
+=head3 reset( $flags )
+
+Resets the current stream and returns any remaining matches, for example
+matches that contain a C<$>.
