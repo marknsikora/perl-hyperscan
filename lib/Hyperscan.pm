@@ -47,7 +47,7 @@ Utility function for identifying underlying hyperscan release version.
 
 =head2 SEE ALSO
 
-=head3 L<Hyperscan::Databse>
+=head3 L<Hyperscan::Database>
 
 =head3 L<Hyperscan::Matcher>
 
