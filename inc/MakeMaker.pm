@@ -59,7 +59,7 @@ override _build_WriteMakefile_dump => sub {
 
     my $dump = super();
     $dump .= <<'EOF';
-$WriteMakefileArgs{CCFLAGS} = $pkg_info{cflags};
+$WriteMakefileArgs{CCFLAGS} = "$pkg_info{cflags} -Wall";
 $WriteMakefileArgs{LIBS}    = $pkg_info{libs};
 EOF
 
